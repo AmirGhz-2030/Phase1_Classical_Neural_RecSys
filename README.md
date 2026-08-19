@@ -4,7 +4,7 @@
 * **موضوع پژوهش:** سیستم‌های توصیه‌گر عامل‌محور نسل جدید (Next-Generation Agentic Recommender Systems)
 * **فاز جاری:** **فاز ۱ — مبانی و بنچمارک سیستم‌های توصیه‌گر کلاسیک و عصبی**
 * **توسعه‌دهنده:** [AmirGhz-2030](https://github.com/AmirGhz-2030)
-* **دیتاست مرجع:** MovieLens 20M Dataset (شامل ۲۰ میلیون تعامل کاربر-فیلم)
+* **دیتاست مرجع:** [MovieLens 20M Dataset (GroupLens)](https://grouplens.org/datasets/movielens/20m/) / [Kaggle Source](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)
 
 ---
 
@@ -35,7 +35,7 @@ Phase1_Classical_Neural_RecSys/
 │   ├── __init__.py
 │   └── main.py                  # اپلیکیشن تعاملی Streamlit با ۴ صفحه مجزا
 ├── data/
-│   ├── raw/                     # فایل‌های خام MovieLens 20M
+│   ├── raw/                     # فایل‌های خام دیتاست (دانلود و قرار داده شود)
 │   └── processed/               # دیتاست‌های پالایش‌شده (train.csv, val.csv, test.csv, meta.pkl)
 ├── src/                         # هسته اصلی کدهای پایتون
 │   ├── data/
@@ -88,26 +88,39 @@ Phase1_Classical_Neural_RecSys/
 
 ## 🚀 راهنمای راه‌اندازی و اجرای پروژه (Quick Start)
 
-### ۱. فعال‌سازی محیط مجازی پایتون
+### ۱. فعال‌سازی محیط مجازی و نصب پیش‌نیازها
 ```bash
-# در سیستم‌عامل ویندوز (CMD / PowerShell):
+# ایجاد و فعال‌سازی venv:
+python -m venv .venv
+
+# در ویندوز:
 .\.venv\Scripts\activate
 
-# یا در Git Bash:
-source .venv/Scripts/activate
+# نصب پکیج‌ها:
+pip install -r requirements.txt
 ```
 
-### ۲. اجرای پایپ‌لاین پیش‌پردازش داده‌ها
+### ۲. دانلود و قرار دادن دیتاست (Dataset Setup)
+به دلیل حجم بالای فایل‌های خام (بیش از ۸۰۰ مگابایت)، فایل‌های دیتاست در مخزن گیت قرار نگرفته‌اند (`.gitignore`).
+* فایل زیپ دیتاست **MovieLens 20M** را از یکی از منابع زیر دانلود کنید:
+  * **[GroupLens Official Dataset Link](https://grouplens.org/datasets/movielens/20m/)**
+  * **[Kaggle MovieLens 20M Dataset](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)**
+* محتویات فایل زیپ (شامل `rating.csv`، `movie.csv`، `tag.csv` و ...) را مستقیماً درون پوشه زیر استخراج کنید:
+  ```text
+  data/raw/
+  ```
+
+### ۳. اجرای پایپ‌لاین پیش‌پردازش داده‌ها
 ```bash
 python src/data/preprocessor.py
 ```
 
-### ۳. اجرای تست‌های واحد و راستی‌آزمایی
+### ۴. اجرای تست‌های واحد و راستی‌آزمایی
 ```bash
 python tests/test_metrics.py
 ```
 
-### ۴. اجرای بنچمارک‌ها
+### ۵. اجرای بنچمارک‌ها
 ```bash
 # بنچمارک مدل‌های کلاسیک:
 python src/evaluation/benchmark_classical.py
@@ -116,7 +129,7 @@ python src/evaluation/benchmark_classical.py
 python src/evaluation/benchmark_sampled100.py
 ```
 
-### ۵. اجرای داشبورد تعاملی Streamlit
+### ۶. اجرای داشبورد تعاملی Streamlit
 ```bash
 streamlit run app/main.py
 ```
