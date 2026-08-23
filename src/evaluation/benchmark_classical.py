@@ -6,10 +6,24 @@ and evaluates ranking performance (HR@5, HR@10, HR@20, NDCG@10, MRR) on the Test
 """
 
 import os
+import sys
 import pickle
 import time
 import pandas as pd
 import numpy as np
+
+# Ensure project root is in sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+# Safe console encoding on Windows
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from src.models.classical import (
     PopularityRecommender,
     ItemKNNRecommender,
@@ -17,7 +31,7 @@ from src.models.classical import (
 )
 from src.evaluation.metrics import RankingEvaluator
 
-PROCESSED_DIR = r"G:\Phase1_Classical_Neural_RecSys\data\processed"
+PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
 
 def run_classical_benchmark(sample_eval_users: int = 5000):
     print("=" * 70)

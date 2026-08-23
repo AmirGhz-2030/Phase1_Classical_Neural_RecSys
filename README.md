@@ -105,7 +105,7 @@ pip install -r requirements.txt
 * فایل زیپ دیتاست **MovieLens 20M** را از یکی از منابع زیر دانلود کنید:
   * **[GroupLens Official Dataset Link](https://grouplens.org/datasets/movielens/20m/)**
   * **[Kaggle MovieLens 20M Dataset](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)**
-* محتویات فایل زیپ (شامل `rating.csv`، `movie.csv`، `tag.csv` و ...) را مستقیماً درون پوشه زیر استخراج کنید:
+* محتویات فایل زیپ را مستقیماً درون پوشه زیر استخراج کنید (پایپ‌لاین به صورت خودکار از هر دو فرم نام‌گذاری `rating.csv`/`movie.csv` و `ratings.csv`/`movies.csv` پشتیبانی می‌کند):
   ```text
   data/raw/
   ```
@@ -117,16 +117,23 @@ python src/data/preprocessor.py
 
 ### ۴. اجرای تست‌های واحد و راستی‌آزمایی
 ```bash
+# تست یکپارچگی داده و خط لوله:
+python tests/test_data_integrity.py
+
+# تست صحت ریاضی سنجه‌های ارزیابی:
 python tests/test_metrics.py
 ```
 
 ### ۵. اجرای بنچمارک‌ها
 ```bash
-# بنچمارک مدل‌های کلاسیک:
+# بنچمارک مدل‌های کلاسیک (All-Item Full Space):
 python src/evaluation/benchmark_classical.py
 
-# بنچمارک پروتکل ۱۰۰تایی:
+# بنچمارک پروتکل ۱۰۰تایی (Sampled-100 NCF Protocol):
 python src/evaluation/benchmark_sampled100.py
+
+# بنچمارک مدل عصبی NCF (اختیاری):
+python src/evaluation/benchmark_ncf.py
 ```
 
 ### ۶. اجرای داشبورد تعاملی Streamlit

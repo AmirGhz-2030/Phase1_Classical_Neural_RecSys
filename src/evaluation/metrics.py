@@ -32,6 +32,8 @@ def hit_rate_at_k(
     Compute Hit Rate @ K (HR@K).
     Returns 1.0 if any ground-truth item is in top-K recommendations, else 0.0.
     """
+    if k <= 0 or not recommendations:
+        return 0.0
     top_k = recommendations[:k]
     if isinstance(ground_truth, (int, np.integer)):
         return 1.0 if ground_truth in top_k else 0.0
@@ -47,8 +49,10 @@ def ndcg_at_k(
     """
     Compute Normalized Discounted Cumulative Gain @ K (NDCG@K).
     For single positive ground truth: 1.0 / log2(rank + 1) where rank is 1-indexed.
-    For multiple items: DCG@K / IDCG@K.
+    For multiple items: DCG@K / IDCG@K with item deduplication safeguards.
     """
+    if k <= 0 or not recommendations:
+        return 0.0
     top_k = recommendations[:k]
     if isinstance(ground_truth, (int, np.integer)):
         if ground_truth in top_k:
@@ -57,9 +61,14 @@ def ndcg_at_k(
         return 0.0
 
     gt_set = set(ground_truth)
+    if not gt_set:
+        return 0.0
+
     dcg = 0.0
+    counted_items = set()
     for i, item in enumerate(top_k):
-        if item in gt_set:
+        if item in gt_set and item not in counted_items:
+            counted_items.add(item)
             rank = i + 1
             dcg += 1.0 / math.log2(rank + 1)
 
@@ -68,7 +77,7 @@ def ndcg_at_k(
     if ideal_hits == 0:
         return 0.0
     idcg = sum(1.0 / math.log2(r + 1) for r in range(1, ideal_hits + 1))
-    return dcg / idcg
+    return min(1.0, dcg / idcg)
 
 
 def mrr_at_k(
@@ -80,6 +89,8 @@ def mrr_at_k(
     Compute Mean Reciprocal Rank @ K (MRR@K).
     Returns 1.0 / rank of the first relevant item in top-K, else 0.0.
     """
+    if k <= 0 or not recommendations:
+        return 0.0
     top_k = recommendations[:k]
     if isinstance(ground_truth, (int, np.integer)):
         gt_set = {ground_truth}
@@ -98,9 +109,9 @@ def precision_at_k(
     k: int = 10
 ) -> float:
     """
-    Compute Precision @ K: (Number of relevant items in top-K) / K.
+    Compute Precision @ K: (Number of distinct relevant items in top-K) / K.
     """
-    if k == 0:
+    if k <= 0 or not recommendations:
         return 0.0
     top_k = recommendations[:k]
     if isinstance(ground_truth, (int, np.integer)):
@@ -108,8 +119,8 @@ def precision_at_k(
     else:
         gt_set = set(ground_truth)
 
-    hits = sum(1 for item in top_k if item in gt_set)
-    return hits / float(k)
+    distinct_hits = len(set(top_k) & gt_set)
+    return min(1.0, distinct_hits / float(k))
 
 
 def recall_at_k(
@@ -118,8 +129,10 @@ def recall_at_k(
     k: int = 10
 ) -> float:
     """
-    Compute Recall @ K: (Number of relevant items in top-K) / (Total relevant items).
+    Compute Recall @ K: (Number of distinct relevant items in top-K) / (Total relevant items).
     """
+    if k <= 0 or not recommendations:
+        return 0.0
     if isinstance(ground_truth, (int, np.integer)):
         gt_set = {ground_truth}
     else:
@@ -129,8 +142,8 @@ def recall_at_k(
         return 0.0
 
     top_k = recommendations[:k]
-    hits = sum(1 for item in top_k if item in gt_set)
-    return hits / float(len(gt_set))
+    distinct_hits = len(set(top_k) & gt_set)
+    return min(1.0, distinct_hits / float(len(gt_set)))
 
 
 class RankingEvaluator:

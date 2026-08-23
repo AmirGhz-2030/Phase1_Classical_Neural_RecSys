@@ -13,11 +13,17 @@ Project: Phase 1 - Classical & Neural Recommender Systems
 """
 
 import os
+import sys
 import pickle
 import logging
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 import pandas as pd
 import numpy as np
+
+# Ensure project root is in sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 # Configure logging
 logging.basicConfig(
@@ -31,12 +37,12 @@ logger = logging.getLogger("Phase1Preprocessor")
 class Phase1DataPreprocessor:
     def __init__(
         self,
-        raw_dir: str = r"G:\Phase1_Classical_Neural_RecSys\data\raw",
-        processed_dir: str = r"G:\Phase1_Classical_Neural_RecSys\data\processed",
+        raw_dir: Optional[str] = None,
+        processed_dir: Optional[str] = None,
         k_core: int = 20
     ):
-        self.raw_dir = raw_dir
-        self.processed_dir = processed_dir
+        self.raw_dir = raw_dir or os.path.join(BASE_DIR, "data", "raw")
+        self.processed_dir = processed_dir or os.path.join(BASE_DIR, "data", "processed")
         self.k_core = k_core
 
         os.makedirs(self.processed_dir, exist_ok=True)
@@ -49,10 +55,34 @@ class Phase1DataPreprocessor:
 
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         logger.info(f"Loading raw datasets from: {self.raw_dir}")
-        ratings_path = os.path.join(self.raw_dir, "rating.csv")
-        movies_path = os.path.join(self.raw_dir, "movie.csv")
+        # Support both Kaggle (rating.csv / movie.csv) and GroupLens (ratings.csv / movies.csv)
+        ratings_candidates = ["rating.csv", "ratings.csv"]
+        movies_candidates = ["movie.csv", "movies.csv"]
 
-        logger.info("Reading rating.csv...")
+        ratings_path = None
+        for cand in ratings_candidates:
+            p = os.path.join(self.raw_dir, cand)
+            if os.path.exists(p):
+                ratings_path = p
+                break
+
+        movies_path = None
+        for cand in movies_candidates:
+            p = os.path.join(self.raw_dir, cand)
+            if os.path.exists(p):
+                movies_path = p
+                break
+
+        if ratings_path is None:
+            raise FileNotFoundError(
+                f"Ratings file not found in {self.raw_dir}. Expected 'rating.csv' or 'ratings.csv'."
+            )
+        if movies_path is None:
+            raise FileNotFoundError(
+                f"Movies file not found in {self.raw_dir}. Expected 'movie.csv' or 'movies.csv'."
+            )
+
+        logger.info(f"Reading ratings from {os.path.basename(ratings_path)}...")
         ratings_df = pd.read_csv(
             ratings_path,
             dtype={"userId": np.int32, "movieId": np.int32, "rating": np.float32},
@@ -60,7 +90,7 @@ class Phase1DataPreprocessor:
         )
         logger.info(f"Loaded {len(ratings_df):,} raw ratings.")
 
-        logger.info("Reading movie.csv...")
+        logger.info(f"Reading movies from {os.path.basename(movies_path)}...")
         movies_df = pd.read_csv(
             movies_path,
             dtype={"movieId": np.int32, "title": str, "genres": str}

@@ -1,15 +1,48 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
+
+# Virtual Environments
 env/
 venv/
 .venv/
-data/raw/*.csv
-data/processed/*.csv
-data/processed/*.pkl
-data/processed/*.pt
+ENV/
+env.bak/
+venv.bak/
+
+# Data artifacts (Raw & Processed)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# PyTorch / ML Model Checkpoints & Weights
+*.pt
+*.pth
+*.bin
+*.onnx
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Streamlit Local Cache & Config
+.streamlit/
+
+# Claude & Agent temporary workspaces
+.claude/
+
+# IDE & OS Specific
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
+*.swp
+*.swo
+
+# Logs & Benchmark Run Temp Files
+*.log
+

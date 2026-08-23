@@ -4,7 +4,22 @@ Unit Tests for Ranking Evaluation Metrics
 Tests HR@K, NDCG@K, MRR@K, Precision@K, Recall@K against analytical edge cases.
 """
 
+import os
+import sys
 import math
+
+# Ensure project root is in sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+# Safe console encoding on Windows
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from src.evaluation.metrics import (
     hit_rate_at_k,
     ndcg_at_k,
@@ -59,6 +74,16 @@ def test_metrics_accuracy():
     # Expected MRR@5 = (1.0 + 0.5 + 0.0) / 3 = 1.5 / 3 = 0.5
     assert math.isclose(res["MRR@5"], 0.5, rel_tol=1e-4)
     print("✅ Case 4 (Batch Evaluator) Passed.")
+
+    # Case 5: Edge cases & deduplication safeguards
+    dup_recs = [101, 101, 102, 103, 104]
+    gt_multi = [101, 102]
+    assert ndcg_at_k(dup_recs, gt_multi, k=5) <= 1.0
+    assert precision_at_k(dup_recs, gt_multi, k=5) == 2.0 / 5.0
+    assert hit_rate_at_k([], 101, k=5) == 0.0
+    assert ndcg_at_k([], 101, k=5) == 0.0
+    assert mrr_at_k([], 101, k=5) == 0.0
+    print("✅ Case 5 (Edge cases & Deduplication) Passed.")
 
     print("\n🎉 ALL METRIC TESTS PASSED SUCCESSFULLY!")
 
