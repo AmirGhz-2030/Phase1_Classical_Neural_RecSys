@@ -1,0 +1,171 @@
+# 🎬 پروژه فاز ۱: مبانی سیستم‌های توصیه‌گر کلاسیک و عصبی (Phase 1 RecSys)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![README: English](https://img.shields.io/badge/README-English-brightgreen.svg)](README.md)
+[![README: Persian](https://img.shields.io/badge/README-Persian-orange.svg)](README.fa.md)
+
+> 🌐 **زبان مستندات:** [English](README.md) | **فارسی**
+
+## 📌 مشخصات پروژه
+* **موضوع پژوهش:** سیستم‌های توصیه‌گر عامل‌محور نسل جدید (Next-Generation Agentic Recommender Systems)
+* **فاز جاری:** **فاز ۱ — مبانی و بنچمارک سیستم‌های توصیه‌گر کلاسیک و عصبی**
+* **توسعه‌دهنده:** [AmirGhz-2030](https://github.com/AmirGhz-2030)
+* **دیتاست مرجع:** [MovieLens 20M Dataset (GroupLens)](https://grouplens.org/datasets/movielens/20m/) / [Kaggle Source](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)
+* **لایسنس:** [MIT License](LICENSE)
+
+---
+
+## 🎯 اهداف فاز ۱
+این پروژه دقیقاً مطابق با سرفصل‌های **Phase 1: Fundamentals of Recommender Systems** پیاده‌سازی شده است و اهداف زیر را محقق می‌کند:
+1. پیاده‌سازی و استقرار کامل خط لوله پیش‌پردازش داده (Data Pipeline) با اعمال فیلتر $20$-Core و تفکیک زمانی (Temporal Leave-One-Last).
+2. پیاده‌سازی مدل‌های پایه‌ای سنتی و کلاسیک:
+   - **Popularity Baseline:** توصیه‌گر بر مبنای فراوانی و محبوبیت سراسری.
+   - **Item-KNN (CF):** فیلترینگ مشارکتی مبتنی بر آیتم با شباهت کسینوسی (Cosine Similarity).
+   - **Matrix Factorization (SVD):** فاکتورگیری ماتریسی در فضای ۶۴ بُعدی متغیرهای پنهان (Latent Factors).
+3. پیاده‌سازی مدل یادگیری عمیق **Neural Collaborative Filtering (NCF / NeuMF)** در پایتورچ با تلفیق شاخه‌های GMF و MLP.
+4. پیاده‌سازی موتور ارزیابی رتبه‌بندی استاندارد آکادمیک با ۵ سنجه: $HR@K$، $NDCG@K$، $MRR@K$، $Precision@K$ و $Recall@K$.
+5. ارزیابی تطبیقی در دو پروتکل علمی: **All-Item Ranking (۱۳,۱۳۰ آیتم)** و **Sampled-100 (پروتکل مقاله NCF 2017)**.
+6. ساخت داشبورد وب تعاملی و پروداکشن با **Streamlit** و **Plotly** برای ارائه زنده و تست بلادرنگ.
+
+---
+
+## 🏗️ معماری ماژولار سیستم (System Architecture)
+
+ساختار پوشه‌بندی پروژه بر اساس اصل **Separation of Concerns** به شکل زیر سازمان‌دهی شده است:
+
+```text
+Phase1_Classical_Neural_RecSys/
+├── .gitignore                   # جلوگیری از کامیت فایل‌های حجیم دیتاست و محیط مجازی
+├── LICENSE                      # لایسنس MIT پروژه
+├── README.md                    # مستندات کامل فنی و آموزشی پروژه (انگلیسی)
+├── README.fa.md                 # مستندات کامل فنی و آموزشی پروژه (فارسی)
+├── requirements.txt             # کتابخانه‌های پروژه (pandas, torch, streamlit, plotly, ...)
+├── app/                         # ماژول رابط کاربری وب
+│   ├── __init__.py
+│   └── main.py                  # اپلیکیشن تعاملی Streamlit با ۴ صفحه مجزا
+├── data/
+│   ├── raw/                     # فایل‌های خام دیتاست (دانلود و قرار داده شود)
+│   └── processed/               # دیتاست‌های پالایش‌شده (train.csv, val.csv, test.csv, meta.pkl)
+├── src/                         # هسته اصلی کدهای پایتون
+│   ├── data/
+│   │   ├── __init__.py
+│   │   └── preprocessor.py      # پایپ‌لاین فیلتر K-Core و تفکیک زمانی
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── classical.py         # پیاده‌سازی مدل‌های Popularity, Item-KNN, SVD
+│   │   └── ncf.py               # پیاده‌سازی مدل عمیق NeuMF در PyTorch
+│   ├── evaluation/
+│   │   ├── __init__.py
+│   │   ├── metrics.py           # فرمول‌های ریاضی و کلاس RankingEvaluator
+│   │   ├── benchmark_classical.py # اسکریپت بنچمارک مدل‌های کلاسیک
+│   │   ├── benchmark_ncf.py       # اسکریپت بنچمارک NCF
+│   │   └── benchmark_sampled100.py# اسکریپت بنچمارک پروتکل ۱۰۰تایی
+│   └── utils/
+└── tests/                       # تست‌های صحت داده و تست‌های واحد سنجه‌ها
+    ├── test_data_integrity.py
+    └── test_metrics.py
+```
+
+---
+
+## 📊 نتایج آزمایش‌ها و جدول لیدربورد بنچمارک
+
+### ۱. ارزیابی در پروتکل Sampled-100 (مشابه مقاله NCF 2017)
+*(برای هر کاربر تست: ۱ فیلم هدف + ۹۹ فیلم منفی تصادفی)*
+
+| رتبه | مدل توصیه‌گر | $HR@5$ | $HR@10$ | $HR@20$ | $NDCG@10$ | $MRR@10$ |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: |
+| 🥇 | **Matrix Factorization (SVD)** | **۷۰.۵۶%** | **۸۰.۹۸%** | **۸۸.۱۴%** | **۰.۵۸۱۰** | **۰.۵۰۸۴** |
+| 🥈 | **Item-KNN (CF)** | ۶۲.۲۲% | ۷۷.۱۸% | ۸۹.۳۸% | ۰.۵۱۰۹ | ۰.۴۲۹۶ |
+| 🥉 | **Popularity** | ۵۲.۶۰% | ۶۸.۴۰% | ۸۳.۶۰% | ۰.۴۲۹۳ | ۰.۳۵۰۶ |
+
+---
+
+### ۲. ارزیابی در پروتکل All-Item Ranking (سخت‌گیرانه روی کل ۱۳,۱۳۰ فیلم)
+*(توصیه از میان تمام آیتم‌های کاتالوگ — رفرنس مقالات ACM KDD)*
+
+| رتبه | مدل توصیه‌گر | $HR@5$ | $HR@10$ | $HR@20$ | $NDCG@10$ | $MRR@10$ | زمان آموزش |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🥇 | **Matrix Factorization (SVD)** | **۵.۴۰%** | **۹.۰۶%** | **۱۴.۹۲%** | **۰.۰۴۶۴** | **۰.۰۳۳۰** | ۹.۲ ثانیه |
+| 🥈 | **Item-KNN (CF)** | ۳.۹۶% | ۶.۹۶% | ۱۱.۶۴% | ۰.۰۳۴۷ | ۰.۰۲۴۳ | ۵.۹ ثانیه |
+| 🥉 | **Popularity** | ۳.۰۰% | ۵.۱۲% | ۸.۳۸% | ۰.۰۲۵۵ | ۰.۰۱۷۸ | ۴.۲ ثانیه |
+| ۴ | **NCF (NeuMF)** | ۲.۷۴% | ۴.۹۲% | ۷.۹۸% | ۰.۰۲۴۴ | ۰.۰۱۷۰ | ۵۴۸ ثانیه |
+
+> 💡 **نکته علمی:** حدس تصادفی در فضای ۱۳,۱۳۰ فیلم معادل **۰.۰۷۶٪** است. مدل SVD پیاده‌شده با رسیدن به $HR@10 = 9.06\%$، دقتی **۱۱۹ برابر بهتر از حدس تصادفی** به ثبت رسانده است.
+>
+> 🔍 **یادداشت روش‌شناسی و تحلیل محاسباتی (Methodology Note):**
+> * **تفاوت ساختاری دو پروتکل ارزیابی:** در پروتکل All-Item، سیستم موظف به رتبه‌بندی آیتم هدف در میان تمام کاتالوگ (۱۳,۱۳۰ فیلم) است، در حالی که در پروتکل Sampled-100 (استاندارد مقاله NCF 2017) جستجو تنها میان ۱۰۰ کاندید (۱ آیتم مثبت + ۹۹ آیتم منفی) انجام می‌شود؛ بنابراین تفاوت چشمگیر ارقام حاصل تفاوت مقیاس فضای جستجو است و هر دو پروتکل از مراجع رسمی ادبیات پژوهش هستند.
+> * **تحلیل عملکرد NCF در فاز ۱ (Rapid Prototyping):** با توجه به مقیاس عظیم دیتاست مووی‌لنز ۲۰ میلیونی، مدل NeuMF در فاز ۱ با هدف اعتبارسنجی یکپارچگی خط لوله عصبی (End-to-End Pipeline Integrity) بر روی پردازنده مرکزی (CPU) و با زیرنمونه‌گیری ۳٪ داده‌ها آموزش داده شده است. این پیاده‌سازی اولیه نشان‌دهنده یک کم‌برازش (Underfitting) کنترل‌شده بر بستر CPU بوده و ضرورت ارتقا به زیرساخت شتاب‌یافته گرافیکی (CUDA) و تزریق دانش عمیق زبانی را توجیه می‌کند که این امر به طور کامل در **فاز ۲ با کارت گرافیک RTX 3070 و معماری KAR+MoE** پیاده‌سازی و نهایی شده است.
+
+---
+
+## 🚀 راهنمای راه‌اندازی و اجرای پروژه (Quick Start)
+
+### ۱. فعال‌سازی محیط مجازی و نصب پیش‌نیازها
+```bash
+# ایجاد و فعال‌سازی venv:
+python -m venv .venv
+
+# در ویندوز:
+.\.venv\Scripts\activate
+
+# در لینوکس / مک:
+# source .venv/bin/activate
+
+# نصب پکیج‌ها:
+pip install -r requirements.txt
+```
+
+### ۲. دانلود و قرار دادن دیتاست (Dataset Setup)
+به دلیل حجم بالای فایل‌های خام (بیش از ۸۰۰ مگابایت)، فایل‌های دیتاست در مخزن گیت قرار نگرفته‌اند (`.gitignore`).
+* فایل زیپ دیتاست **MovieLens 20M** را از یکی از منابع زیر دانلود کنید:
+  * **[GroupLens Official Dataset Link](https://grouplens.org/datasets/movielens/20m/)**
+  * **[Kaggle MovieLens 20M Dataset](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)**
+* محتویات فایل زیپ را مستقیماً درون پوشه زیر استخراج کنید (پایپ‌لاین به صورت خودکار از هر دو فرم نام‌گذاری `rating.csv`/`movie.csv` و `ratings.csv`/`movies.csv` پشتیبانی می‌کند):
+  ```text
+  data/raw/
+  ```
+
+### ۳. اجرای پایپ‌لاین پیش‌پردازش داده‌ها
+```bash
+python src/data/preprocessor.py
+```
+
+### ۴. اجرای تست‌های واحد و راستی‌آزمایی
+```bash
+# تست یکپارچگی داده و خط لوله:
+python tests/test_data_integrity.py
+
+# تست صحت ریاضی سنجه‌های ارزیابی:
+python tests/test_metrics.py
+```
+
+### ۵. اجرای بنچمارک‌ها
+```bash
+# بنچمارک مدل‌های کلاسیک (All-Item Full Space):
+python src/evaluation/benchmark_classical.py
+
+# بنچمارک پروتکل ۱۰۰تایی (Sampled-100 NCF Protocol):
+python src/evaluation/benchmark_sampled100.py
+
+# بنچمارک مدل عصبی NCF (اختیاری):
+python src/evaluation/benchmark_ncf.py
+```
+
+### ۶. اجرای داشبورد تعاملی Streamlit
+```bash
+streamlit run app/main.py
+```
+سپس مرورگر خود را باز کرده و به آدرس زیر بروید:
+👉 **`http://localhost:8501`**
+
+---
+
+## 📄 لایسنس (License)
+این پروژه تحت لایسنس **MIT** منتشر شده است — برای جزئیات بیشتر فایل [LICENSE](LICENSE) را مطالعه کنید.
+
+---
+
+## 👨‍💻 GitHub
+* Profile: [@AmirGhz-2030](https://github.com/AmirGhz-2030)
+* Repository: `Phase1_Classical_Neural_RecSys`
